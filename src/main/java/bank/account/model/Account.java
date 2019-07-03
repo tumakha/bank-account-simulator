@@ -9,13 +9,15 @@ import static java.util.stream.Collectors.toList;
 
 public class Account {
 
+  private static final int BALANCE_SCALE = 2;
+
   private Long number;
 
   private Double balance;
 
   public Account(Long number, Double balance) {
     this.number = number;
-    this.balance = round(balance, 2);
+    this.balance = round(balance, BALANCE_SCALE);
   }
 
   public Long getNumber() {
@@ -35,7 +37,7 @@ public class Account {
   }
 
   public void transferMoney(Account destination, Double moneyToRound) {
-    Double money = round(moneyToRound, 2);
+    Double money = round(moneyToRound, BALANCE_SCALE);
     List accounts = Stream.of(this, destination).sorted(comparingLong(Account::getNumber)).collect(toList());
 
     synchronized (accounts.get(0)) {
