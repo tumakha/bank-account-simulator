@@ -30,7 +30,7 @@ public class AccountTest {
   @Test
   public void testTransferRoundedMoney() {
     Account account1 = new Account(111L, 1e9);
-    Account account2 = new Account(222L, 0.0);
+    Account account2 = new Account(222L, 0.004);
     account1.transferMoney(account2, 1000_000.555);
 
     assertThat(account1.getBalance(), equalTo(998_999_999.44));

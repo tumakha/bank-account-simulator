@@ -15,7 +15,7 @@ public class Account {
 
   public Account(Long number, Double balance) {
     this.number = number;
-    this.balance = balance;
+    this.balance = round(balance, 2);
   }
 
   public Long getNumber() {
