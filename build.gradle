@@ -13,6 +13,7 @@ repositories {
 
 dependencies {
     testImplementation 'junit:junit:4.12'
+    testImplementation 'io.rest-assured:rest-assured:3.3.0'
 }
 
 jar {

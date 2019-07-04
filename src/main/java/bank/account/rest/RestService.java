@@ -12,7 +12,7 @@ import static java.util.concurrent.Executors.newFixedThreadPool;
  */
 public class RestService {
 
-  private static final int HTTP_PORT = 8888;
+  protected static final int HTTP_PORT = 8888;
   private static final int THREADS = 100;
 
   private HttpServer server;
