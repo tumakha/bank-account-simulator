@@ -1,5 +1,6 @@
 package bank.account.rest;
 
+import bank.account.test.concurrent.ConcurrentRun;
 import io.restassured.RestAssured;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -206,6 +207,67 @@ public class RestServiceITest {
         then().
         statusCode(HTTP_NOT_FOUND).
         body("error", equalTo("Wrong path pattern"));
+  }
+
+  @Test
+  public void testParallelTransferMoney() {
+    Long accountNumber1 = 1001L;
+    Long accountNumber2 = 1002L;
+
+    // Create account 1
+    given().
+        contentType(JSON).
+        body("{\"balance\": 1000000}").
+        when().
+        post(BASE_URL + accountNumber1).
+        then().
+        statusCode(HTTP_OK).
+        body("balance", is(1e6f));
+
+    // Create account 2
+    given().
+        contentType(JSON).
+        body("{\"balance\": 1000000}").
+        when().
+        post(BASE_URL + accountNumber2).
+        then().
+        statusCode(HTTP_OK).
+        body("balance", is(1e6f));
+
+    new ConcurrentRun(() -> {
+
+
+      // Transfer 100 from account 1 to account 2
+      when().
+          post(BASE_URL + accountNumber1 + "/to/" + accountNumber2 + "/transfer/100").
+          then().
+          statusCode(HTTP_OK).
+          contentType(JSON).
+          body("status", equalTo("OK"));
+
+      // Transfer 99.99 from account 2 to account 1
+      when().
+          post(BASE_URL + accountNumber2 + "/to/" + accountNumber1 + "/transfer/99.99").
+          then().
+          statusCode(HTTP_OK).
+          contentType(JSON).
+          body("status", equalTo("OK"));
+      // account1 -= 0.01, account2 += 0.01 after each loop
+    }).run(1_000);
+
+    // Get account 1
+    when().
+        get(BASE_URL + accountNumber1).
+        then().
+        statusCode(HTTP_OK).
+        body("balance", is(1e6f - 10));
+
+    // Get account 2
+    when().
+        get(BASE_URL + accountNumber2).
+        then().
+        statusCode(HTTP_OK).
+        body("balance", is(1e6f + 10));
   }
 
 }

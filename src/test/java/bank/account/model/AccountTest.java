@@ -1,5 +1,6 @@
 package bank.account.model;
 
+import bank.account.test.concurrent.ConcurrentRun;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -51,28 +52,21 @@ public class AccountTest {
   }
 
   @Test
-  public void testParallelTransferMoney() throws InterruptedException {
+  public void testParallelTransferMoney() {
     Account account1 = new Account(1L, 1e9);
     Account account2 = new Account(2L, 1e9);
     Account account3 = new Account(3L, 1e9);
-    ExecutorService executor = Executors.newFixedThreadPool(50);
-    range(0, 1000).forEach(t ->
-        executor.submit(() ->
-          range(0, 10).forEach(i -> {
-            account1.transferMoney(account2, 100.0);
-            account2.transferMoney(account3, 50.0);
-            account3.transferMoney(account1, 50.0);
-            account2.transferMoney(account1, 50.0);
 
-            account1.transferMoney(account2, 300.0);
-            account2.transferMoney(account1, 280.0);
+    new ConcurrentRun(() -> {
+      account1.transferMoney(account2, 100.0);
+      account2.transferMoney(account3, 50.0);
+      account3.transferMoney(account1, 50.0);
+      account2.transferMoney(account1, 50.0);
 
-            // account1 -= 20, account2 += 20 after each loop
-          })
-        )
-    );
-    executor.shutdown();
-    executor.awaitTermination(5, TimeUnit.SECONDS);
+      account1.transferMoney(account2, 300.0);
+      account2.transferMoney(account1, 280.0);
+      // account1 -= 20, account2 += 20 after each loop
+    }).run(10_000);
 
     assertThat(account1.getBalance(), equalTo(1e9 - 200_000));
     assertThat(account2.getBalance(), equalTo(1e9 + 200_000));
