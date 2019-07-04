@@ -7,10 +7,7 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 import java.lang.System.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -21,6 +18,9 @@ import static java.net.HttpURLConnection.*;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.joining;
 
+/**
+ * @author Yuriy Tumakha.
+ */
 public class AccountHandler implements HttpHandler {
 
   private final static Logger LOG = System.getLogger(Bank.class.getName());
@@ -41,11 +41,11 @@ public class AccountHandler implements HttpHandler {
         switch (method) {
           case "GET": {
             getAccount(exchange, accountNumber);
+            break;
           }
           case "POST": {
-            String body = new BufferedReader(new InputStreamReader(exchange.getRequestBody()))
-                .lines().collect(joining());
-            createAccount(exchange, accountNumber, body);
+            createAccount(exchange, accountNumber, exchange.getRequestBody());
+            break;
           }
           default:
             writeError(exchange, HTTP_BAD_METHOD, format("Method %s Not Allowed", method));
@@ -53,11 +53,10 @@ public class AccountHandler implements HttpHandler {
       } else {
         Matcher matcher = MONEY_TRANSFER_PATTERN.matcher(path);
         if (matcher.find()) {
-          if (!method.equals("POST")) {
+          if (!method.equals("POST"))
             writeError(exchange, HTTP_BAD_METHOD, format("Method %s Not Allowed", method));
-          } else {
+          else
             transferMoney(exchange, matcher);
-          }
         } else {
           writeError(exchange, HTTP_NOT_FOUND, "Wrong path pattern");
         }
@@ -73,13 +72,17 @@ public class AccountHandler implements HttpHandler {
 
   private void getAccount(HttpExchange exchange, Long accountNumber) throws IOException {
     Account account = bank.getAccount(accountNumber);
-    writeResponse(exchange, HTTP_OK, format("{\"balance\": \"%.2f\"}", account.getBalance()));
+
+    writeResponse(exchange, HTTP_OK, format("{\"balance\": %.2f}", account.getBalance()));
   }
 
-  private void createAccount(HttpExchange exchange, Long accountNumber, String requestBody) throws IOException {
-    Double balance = JsonParser.parseDouble("balance", requestBody);
+  private void createAccount(HttpExchange exchange, Long accountNumber, InputStream requestBody) throws IOException {
+    String body = new BufferedReader(new InputStreamReader(requestBody))
+        .lines().collect(joining());
+    Double balance = JsonParser.parseDouble("balance", body);
     Account account = bank.createAccount(accountNumber, balance);
-    writeResponse(exchange, HTTP_OK, format("{\"balance\": \"%.2f\"}", account.getBalance()));
+
+    writeResponse(exchange, HTTP_OK, format("{\"balance\": %.2f}", account.getBalance()));
   }
 
   private void transferMoney(HttpExchange exchange, Matcher matcher) throws IOException {
@@ -100,7 +103,7 @@ public class AccountHandler implements HttpHandler {
   private void writeResponse(HttpExchange httpExchange, int code, String response) throws IOException {
     Headers headers = httpExchange.getResponseHeaders();
     headers.set("Content-Type", "application/json; charset=utf-8");
-    byte[] responseBytes = response.getBytes(UTF_8);
+    byte[] responseBytes = (response + "\n").getBytes(UTF_8);
     httpExchange.sendResponseHeaders(code, responseBytes.length);
     try (OutputStream os = httpExchange.getResponseBody()) {
       os.write(responseBytes);

@@ -7,6 +7,9 @@ import static bank.account.util.MathUtil.round;
 import static java.util.Comparator.comparingLong;
 import static java.util.stream.Collectors.toList;
 
+/**
+ * @author Yuriy Tumakha.
+ */
 public class Account {
 
   private static final int BALANCE_SCALE = 2;
@@ -42,9 +45,8 @@ public class Account {
 
     synchronized (accounts.get(0)) {
       synchronized (accounts.get(1)) {
-        if (balance < money) {
+        if (balance < money)
           throw new IllegalStateException("Insufficient funds on account " + number);
-        }
         withdraw(money);
         destination.deposit(money);
       }

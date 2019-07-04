@@ -8,6 +8,9 @@ import org.junit.rules.ExpectedException;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
+/**
+ * @author Yuriy Tumakha.
+ */
 public class BankTest {
 
   @Rule

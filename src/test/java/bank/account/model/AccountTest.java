@@ -12,6 +12,9 @@ import static java.util.stream.LongStream.range;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
+/**
+ * @author Yuriy Tumakha.
+ */
 public class AccountTest {
 
   @Rule

@@ -7,6 +7,9 @@ import java.net.InetSocketAddress;
 
 import static java.util.concurrent.Executors.newFixedThreadPool;
 
+/**
+ * @author Yuriy Tumakha.
+ */
 public class RestService {
 
   private static final int HTTP_PORT = 8888;

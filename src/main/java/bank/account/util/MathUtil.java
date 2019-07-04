@@ -4,6 +4,9 @@ import java.math.BigDecimal;
 
 import static java.math.RoundingMode.HALF_UP;
 
+/**
+ * @author Yuriy Tumakha.
+ */
 public abstract class MathUtil {
 
   public static Double round(Double val, int scale) {
