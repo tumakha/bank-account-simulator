@@ -1,11 +1,13 @@
 package bank.account;
 
-import bank.account.service.Bank;
+import bank.account.rest.RestService;
+
+import java.io.IOException;
 
 public class WebApp {
 
-  public static void main(String[] args) {
-    Bank bank = new Bank();
+  public static void main(String[] args) throws IOException {
+    new RestService();
   }
 
 }

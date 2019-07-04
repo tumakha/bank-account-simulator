@@ -56,4 +56,42 @@ public class BankTest {
     assertThat(bank.getAccount(accNumber2).getBalance(), equalTo(5_000.0));
   }
 
+  @Test
+  public void testTransferMoneyUnknownTo() {
+    expectedEx.expect(IllegalArgumentException.class);
+    expectedEx.expectMessage("Unknown account 777");
+
+    Long accNumber1 = 555L;
+    Long accNumber2 = 777L;
+    Bank bank = new Bank();
+    bank.createAccount(accNumber1, 1000.0);
+
+    bank.transferMoney(accNumber1, accNumber2, 500.0);
+  }
+
+  @Test
+  public void testTransferMoneyUnknownFrom() {
+    expectedEx.expect(IllegalArgumentException.class);
+    expectedEx.expectMessage("Unknown account 111");
+
+    Long accNumber1 = 111L;
+    Long accNumber2 = 555L;
+    Bank bank = new Bank();
+    bank.createAccount(accNumber2, 1000.0);
+
+    bank.transferMoney(accNumber1, accNumber2, 500.0);
+  }
+
+  @Test
+  public void testTransferMoneyToTheSameAccount() {
+    expectedEx.expect(IllegalArgumentException.class);
+    expectedEx.expectMessage("Transfer money to the same account 222 is not allowed");
+
+    Long accNumber = 222L;
+    Bank bank = new Bank();
+    bank.createAccount(accNumber, 1e6);
+
+    bank.transferMoney(accNumber, accNumber, 100.0);
+  }
+
 }
