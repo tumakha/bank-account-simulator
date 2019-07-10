@@ -8,7 +8,7 @@ Java 11, Gradle 4.10+ or gradle-wrapper
 
 ### Run/Debug main class ###
 
-    bank.account.WebApp
+    bank.account.WebAppMain
     
 ### Build ###
 
@@ -36,4 +36,4 @@ RESTful API
 
  * Transfer money from one bank account to another
 
-        curl -v -X POST localhost:8888/v1/account/1122/to/3333/transfer/500
+        curl -v -X POST --header "Content-Type: application/json" -d '{"from": 1111, "to": 2222, "amount": 500}' localhost:8888/v1/transfer

@@ -11,13 +11,15 @@ import java.io.IOException;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 import static io.restassured.http.ContentType.JSON;
+import static java.lang.String.format;
 import static java.net.HttpURLConnection.*;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 
 public class RestServiceITest {
 
-  private static final String BASE_URL = "/v1/account/";
+  private static final String ACCOUNT_BASE = "/v1/account/";
+  private static final String TRANSFER_BASE = "/v1/transfer";
   private static RestService restService;
 
   @BeforeClass
@@ -39,7 +41,7 @@ public class RestServiceITest {
         contentType(JSON).
         body("{\n\"balance\": 1000.50\n}").
         when().
-        post(BASE_URL + accountNumber).
+        post(ACCOUNT_BASE + accountNumber).
         then().
         statusCode(HTTP_OK).
         contentType(JSON).
@@ -55,7 +57,7 @@ public class RestServiceITest {
         contentType(JSON).
         body("{\"balance\": 2000}").
         when().
-        post(BASE_URL + accountNumber).
+        post(ACCOUNT_BASE + accountNumber).
         then().
         statusCode(HTTP_OK).
         contentType(JSON).
@@ -63,7 +65,7 @@ public class RestServiceITest {
 
     // Get account
     when().
-        get(BASE_URL + accountNumber).
+        get(ACCOUNT_BASE + accountNumber).
         then().
         statusCode(HTTP_OK).
         contentType(JSON).
@@ -80,7 +82,7 @@ public class RestServiceITest {
         contentType(JSON).
         body("{\n\"balance\": 1000.0\n}").
         when().
-        post(BASE_URL + accountNumber1).
+        post(ACCOUNT_BASE + accountNumber1).
         then().
         statusCode(HTTP_OK).
         body("balance", is(1000f));
@@ -90,14 +92,17 @@ public class RestServiceITest {
         contentType(JSON).
         body("{\n\"balance\": 777\n}").
         when().
-        post(BASE_URL + accountNumber2).
+        post(ACCOUNT_BASE + accountNumber2).
         then().
         statusCode(HTTP_OK).
         body("balance", is(777f));
 
     // Transfer 50.88 from account 1 to account 2
-    when().
-        post(BASE_URL + accountNumber1 + "/to/" + accountNumber2 + "/transfer/50.88").
+    given().
+        contentType(JSON).
+        body(format("{\"from\": %d, \"to\": %d , \"amount\": %.2f}", accountNumber1, accountNumber2, 50.88)).
+        when().
+        post(TRANSFER_BASE).
         then().
         statusCode(HTTP_OK).
         contentType(JSON).
@@ -105,14 +110,14 @@ public class RestServiceITest {
 
     // Get account 1
     when().
-        get(BASE_URL + accountNumber1).
+        get(ACCOUNT_BASE + accountNumber1).
         then().
         statusCode(HTTP_OK).
         body("balance", is(949.12f));
 
     // Get account 2
     when().
-        get(BASE_URL + accountNumber2).
+        get(ACCOUNT_BASE + accountNumber2).
         then().
         statusCode(HTTP_OK).
         body("balance", is(827.88f));
@@ -120,8 +125,11 @@ public class RestServiceITest {
 
   @Test
   public void testTransferMoneyUnknownFrom() {
-    when().
-        post(BASE_URL + "9999/to/22/transfer/500").
+    given().
+        contentType(JSON).
+        body("{\"from\": 9999, \"to\": 22 , \"amount\": 500}").
+        when().
+        post(TRANSFER_BASE).
         then().
         statusCode(HTTP_BAD_REQUEST).
         contentType(JSON).
@@ -138,7 +146,7 @@ public class RestServiceITest {
         contentType(JSON).
         body("{\n\"balance\": 300\n}").
         when().
-        post(BASE_URL + accountNumber1).
+        post(ACCOUNT_BASE + accountNumber1).
         then().
         statusCode(HTTP_OK).
         body("balance", is(300f));
@@ -148,14 +156,17 @@ public class RestServiceITest {
         contentType(JSON).
         body("{\n\"balance\": 400\n}").
         when().
-        post(BASE_URL + accountNumber2).
+        post(ACCOUNT_BASE + accountNumber2).
         then().
         statusCode(HTTP_OK).
         body("balance", is(400f));
 
     // Attempt to transfer 350 from account 1 to account 2
-    when().
-        post(BASE_URL + accountNumber1 + "/to/" + accountNumber2 + "/transfer/350").
+    given().
+        contentType(JSON).
+        body(format("{\"from\": %d, \"to\": %d , \"amount\": %d}", accountNumber1, accountNumber2, 350)).
+        when().
+        post(TRANSFER_BASE + "/").
         then().
         statusCode(HTTP_BAD_REQUEST).
         contentType(JSON).
@@ -163,14 +174,14 @@ public class RestServiceITest {
 
     // Get account 1
     when().
-        get(BASE_URL + accountNumber1).
+        get(ACCOUNT_BASE + accountNumber1).
         then().
         statusCode(HTTP_OK).
         body("balance", is(300f));
 
     // Get account 2
     when().
-        get(BASE_URL + accountNumber2).
+        get(ACCOUNT_BASE + accountNumber2).
         then().
         statusCode(HTTP_OK).
         body("balance", is(400f));
@@ -179,14 +190,17 @@ public class RestServiceITest {
   @Test
   public void testNotAllowedMethod() {
     when().
-        put(BASE_URL + "1122").
+        put(ACCOUNT_BASE + "1122").
         then().
         statusCode(HTTP_BAD_METHOD).
         contentType(JSON).
         body("error", equalTo("Method PUT Not Allowed"));
 
-    when().
-        delete(BASE_URL + "111/to/222/transfer/50.88").
+    given().
+        contentType(JSON).
+        body("{\"amount\": 2000}").
+        when().
+        delete(TRANSFER_BASE + "/").
         then().
         statusCode(HTTP_BAD_METHOD).
         contentType(JSON).
@@ -203,7 +217,14 @@ public class RestServiceITest {
 
     given().
         when().
-        get("/v1/account/2222/unknown/333/path").
+        get(ACCOUNT_BASE + "2222/unknown/333/path").
+        then().
+        statusCode(HTTP_NOT_FOUND).
+        body("error", equalTo("Wrong path pattern"));
+
+    given().
+        when().
+        get(TRANSFER_BASE + "/2222/unknown/path").
         then().
         statusCode(HTTP_NOT_FOUND).
         body("error", equalTo("Wrong path pattern"));
@@ -219,7 +240,7 @@ public class RestServiceITest {
         contentType(JSON).
         body("{\"balance\": 1000000}").
         when().
-        post(BASE_URL + accountNumber1).
+        post(ACCOUNT_BASE + accountNumber1).
         then().
         statusCode(HTTP_OK).
         body("balance", is(1e6f));
@@ -229,7 +250,7 @@ public class RestServiceITest {
         contentType(JSON).
         body("{\"balance\": 1000000}").
         when().
-        post(BASE_URL + accountNumber2).
+        post(ACCOUNT_BASE + accountNumber2).
         then().
         statusCode(HTTP_OK).
         body("balance", is(1e6f));
@@ -238,16 +259,22 @@ public class RestServiceITest {
 
 
       // Transfer 100 from account 1 to account 2
-      when().
-          post(BASE_URL + accountNumber1 + "/to/" + accountNumber2 + "/transfer/100").
+      given().
+          contentType(JSON).
+          body(format("{\"from\": %d, \"to\": %d , \"amount\": %.2f}", accountNumber1, accountNumber2, 100.0)).
+          when().
+          post(TRANSFER_BASE).
           then().
           statusCode(HTTP_OK).
           contentType(JSON).
           body("status", equalTo("OK"));
 
       // Transfer 99.99 from account 2 to account 1
-      when().
-          post(BASE_URL + accountNumber2 + "/to/" + accountNumber1 + "/transfer/99.99").
+      given().
+          contentType(JSON).
+          body(format("{\"from\": %d, \"to\": %d , \"amount\": %.2f}", accountNumber2, accountNumber1, 99.99)).
+          when().
+          post(TRANSFER_BASE).
           then().
           statusCode(HTTP_OK).
           contentType(JSON).
@@ -257,14 +284,14 @@ public class RestServiceITest {
 
     // Get account 1
     when().
-        get(BASE_URL + accountNumber1).
+        get(ACCOUNT_BASE + accountNumber1).
         then().
         statusCode(HTTP_OK).
         body("balance", is(1e6f - 10));
 
     // Get account 2
     when().
-        get(BASE_URL + accountNumber2).
+        get(ACCOUNT_BASE + accountNumber2).
         then().
         statusCode(HTTP_OK).
         body("balance", is(1e6f + 10));

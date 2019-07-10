@@ -6,6 +6,9 @@ import java.util.concurrent.Executors;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.LongStream.range;
 
+/**
+ * @author Yuriy Tumakha.
+ */
 public class ConcurrentRun {
 
   private Runnable runnable;

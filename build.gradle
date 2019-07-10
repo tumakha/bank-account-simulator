@@ -19,6 +19,6 @@ dependencies {
 jar {
     archiveName = 'bank-account.jar'
     manifest {
-        attributes 'Main-Class': 'bank.account.WebApp'
+        attributes 'Main-Class': 'bank.account.WebAppMain'
     }
 }
