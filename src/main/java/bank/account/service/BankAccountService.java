@@ -33,6 +33,11 @@ public class BankAccountService {
     return newAccount;
   }
 
+  public void deleteAccount(Long accountNumber) {
+    BankAccount account = getAccount(accountNumber);
+    accountMap.remove(account.getNumber());
+  }
+
   public void transferMoney(Long fromAccount, Long toAccount, BigDecimal amount) {
     if (fromAccount.equals(toAccount))
       throw new IllegalArgumentException(format("Transfer money to the same account %d is not allowed", fromAccount));

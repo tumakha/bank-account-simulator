@@ -13,9 +13,7 @@ import java.math.BigDecimal;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static bank.account.rest.http.HttpMethod.GET;
-import static bank.account.rest.http.HttpMethod.POST;
-import static java.lang.String.format;
+import static bank.account.rest.http.HttpMethod.*;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static java.util.stream.Collectors.joining;
 
@@ -25,26 +23,30 @@ import static java.util.stream.Collectors.joining;
 public class AccountRestHandler extends BaseHandler {
 
   private final static Logger LOG = System.getLogger(AccountRestHandler.class.getName());
-  private static final Pattern ACCOUNT_NUMBER_PATTERN = Pattern.compile("^(\\d+)$");
+  private static final Pattern ACCOUNT_NUMBER_PATTERN = Pattern.compile("^/(\\d+)$");
 
   AccountRestHandler(BankAccountService bankAccountService) {
     super(bankAccountService, LOG);
 
-    PathConsumerMapping mapping = new PathConsumerMapping(ACCOUNT_NUMBER_PATTERN);
-    mapping.addConsumer(GET, this::getAccount);
+    PathConsumerMapping accountIdMapping = new PathConsumerMapping(ACCOUNT_NUMBER_PATTERN);
+    accountIdMapping.addConsumer(GET, this::getAccount);
+    accountIdMapping.addConsumer(DELETE, this::deleteAccount);
+    addMapping(accountIdMapping);
+
+    PathConsumerMapping mapping = new PathConsumerMapping(ROOT_PATH_PATTERN);
     mapping.addConsumer(POST, this::createAccount);
     addMapping(mapping);
   }
 
   private void createAccount(Matcher matcher, HttpExchange exchange) {
-    Long accountNumber = Long.parseLong(matcher.group(1));
     String body = new BufferedReader(new InputStreamReader(exchange.getRequestBody()))
         .lines().collect(joining());
+    Long accountNumber = JsonParser.parseLong("account", body);
     BigDecimal balance = JsonParser.parseBigDecimal("balance", body);
 
     BankAccount account = bankAccountService.createAccount(accountNumber, balance);
 
-    writeResponse(exchange, HTTP_OK, format("{\"balance\": %.2f}", account.getBalance()));
+    writeResponse(exchange, HTTP_OK, account.toJson());
   }
 
   private void getAccount(Matcher matcher, HttpExchange exchange) {
@@ -52,7 +54,15 @@ public class AccountRestHandler extends BaseHandler {
 
     BankAccount account = bankAccountService.getAccount(accountNumber);
 
-    writeResponse(exchange, HTTP_OK, format("{\"balance\": %.2f}", account.getBalance()));
+    writeResponse(exchange, HTTP_OK, account.toJson());
+  }
+
+  private void deleteAccount(Matcher matcher, HttpExchange exchange) {
+    Long accountNumber = Long.parseLong(matcher.group(1));
+
+    bankAccountService.deleteAccount(accountNumber);
+
+    writeResponse(exchange, HTTP_OK, "{\"status\": \"OK\"}");
   }
 
 }

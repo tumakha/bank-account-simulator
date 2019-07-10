@@ -22,7 +22,7 @@ public class RestService {
 
   public RestService() throws IOException {
     server = HttpServer.create(new InetSocketAddress(HTTP_PORT), 0);
-    server.createContext("/v1/account/", new AccountRestHandler(bankAccountService));
+    server.createContext("/v1/account", new AccountRestHandler(bankAccountService));
     server.createContext("/v1/transfer", new TransferRestHandler(bankAccountService));
     server.setExecutor(newFixedThreadPool(THREADS));
     server.start();

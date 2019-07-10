@@ -19,7 +19,7 @@ import static org.hamcrest.CoreMatchers.is;
 public class RestServiceITest {
 
   private static final String ACCOUNT_BASE = "/v1/account/";
-  private static final String TRANSFER_BASE = "/v1/transfer";
+  private static final String TRANSFER_BASE = "/v1/transfer/";
   private static RestService restService;
 
   @BeforeClass
@@ -35,17 +35,18 @@ public class RestServiceITest {
 
   @Test
   public void testCreateAccount() {
-    Long accountNumber = 111L;
+    int accountNumber = 111;
 
     given().
         contentType(JSON).
-        body("{\n\"balance\": 1000.50\n}").
+        body(format("{\n\"account\": %d\"balance\": 1000.50\n}", accountNumber)).
         when().
-        post(ACCOUNT_BASE + accountNumber).
+        post(ACCOUNT_BASE).
         then().
         statusCode(HTTP_OK).
         contentType(JSON).
-        body("balance", is(1000.50f));
+        body("account", is(accountNumber),
+            "balance", is(1000.50f));
   }
 
   @Test
@@ -55,9 +56,34 @@ public class RestServiceITest {
     // Create account
     given().
         contentType(JSON).
-        body("{\"balance\": 2000}").
+        body(format("{\"account\": %d, \"balance\": 2000}", accountNumber)).
         when().
-        post(ACCOUNT_BASE + accountNumber).
+        post(ACCOUNT_BASE).
+        then().
+        statusCode(HTTP_OK).
+        contentType(JSON).
+        body("balance", is(2000f));
+
+    // Get account
+    when().
+        get(ACCOUNT_BASE + accountNumber).
+        then().
+        statusCode(HTTP_OK).
+        contentType(JSON).
+        body("account", is(accountNumber.intValue()),
+            "balance", is(2000f));
+  }
+
+  @Test
+  public void testDeleteAccount() {
+    Long accountNumber = 5000L;
+
+    // Create account
+    given().
+        contentType(JSON).
+        body(format("{\"account\": %d, \"balance\": 2000}", accountNumber)).
+        when().
+        post(ACCOUNT_BASE).
         then().
         statusCode(HTTP_OK).
         contentType(JSON).
@@ -80,9 +106,9 @@ public class RestServiceITest {
     // Create account 1
     given().
         contentType(JSON).
-        body("{\n\"balance\": 1000.0\n}").
+        body(format("{\"account\": %d, \"balance\": 1000.0}", accountNumber1)).
         when().
-        post(ACCOUNT_BASE + accountNumber1).
+        post(ACCOUNT_BASE).
         then().
         statusCode(HTTP_OK).
         body("balance", is(1000f));
@@ -90,9 +116,9 @@ public class RestServiceITest {
     // Create account 2
     given().
         contentType(JSON).
-        body("{\n\"balance\": 777\n}").
+        body(format("{\"account\": %d, \"balance\": 777}", accountNumber2)).
         when().
-        post(ACCOUNT_BASE + accountNumber2).
+        post(ACCOUNT_BASE).
         then().
         statusCode(HTTP_OK).
         body("balance", is(777f));
@@ -144,9 +170,9 @@ public class RestServiceITest {
     // Create account 1
     given().
         contentType(JSON).
-        body("{\n\"balance\": 300\n}").
+        body(format("{\"account\": %d, \"balance\": 300}", accountNumber1)).
         when().
-        post(ACCOUNT_BASE + accountNumber1).
+        post(ACCOUNT_BASE).
         then().
         statusCode(HTTP_OK).
         body("balance", is(300f));
@@ -154,9 +180,9 @@ public class RestServiceITest {
     // Create account 2
     given().
         contentType(JSON).
-        body("{\n\"balance\": 400\n}").
+        body(format("{\"account\": %d, \"balance\": 400.0}", accountNumber2)).
         when().
-        post(ACCOUNT_BASE + accountNumber2).
+        post(ACCOUNT_BASE).
         then().
         statusCode(HTTP_OK).
         body("balance", is(400f));
@@ -166,7 +192,7 @@ public class RestServiceITest {
         contentType(JSON).
         body(format("{\"from\": %d, \"to\": %d , \"amount\": %d}", accountNumber1, accountNumber2, 350)).
         when().
-        post(TRANSFER_BASE + "/").
+        post(TRANSFER_BASE).
         then().
         statusCode(HTTP_BAD_REQUEST).
         contentType(JSON).
@@ -200,7 +226,17 @@ public class RestServiceITest {
         contentType(JSON).
         body("{\"amount\": 2000}").
         when().
-        delete(TRANSFER_BASE + "/").
+        delete(TRANSFER_BASE).
+        then().
+        statusCode(HTTP_BAD_METHOD).
+        contentType(JSON).
+        body("error", equalTo("Method DELETE Not Allowed"));
+
+    given().
+        contentType(JSON).
+        body("{\"amount\": 2000}").
+        when().
+        delete(TRANSFER_BASE.substring(0, TRANSFER_BASE.length() - 1)).
         then().
         statusCode(HTTP_BAD_METHOD).
         contentType(JSON).
@@ -224,7 +260,7 @@ public class RestServiceITest {
 
     given().
         when().
-        get(TRANSFER_BASE + "/2222/unknown/path").
+        get(TRANSFER_BASE + "2222").
         then().
         statusCode(HTTP_NOT_FOUND).
         body("error", equalTo("Wrong path pattern"));
@@ -238,9 +274,9 @@ public class RestServiceITest {
     // Create account 1
     given().
         contentType(JSON).
-        body("{\"balance\": 1000000}").
+        body(format("{\"account\": %d, \"balance\": 1000000}", accountNumber1)).
         when().
-        post(ACCOUNT_BASE + accountNumber1).
+        post(ACCOUNT_BASE).
         then().
         statusCode(HTTP_OK).
         body("balance", is(1e6f));
@@ -248,9 +284,9 @@ public class RestServiceITest {
     // Create account 2
     given().
         contentType(JSON).
-        body("{\"balance\": 1000000}").
+        body(format("{\"account\": %d, \"balance\": 1000000}", accountNumber2)).
         when().
-        post(ACCOUNT_BASE + accountNumber2).
+        post(ACCOUNT_BASE).
         then().
         statusCode(HTTP_OK).
         body("balance", is(1e6f));

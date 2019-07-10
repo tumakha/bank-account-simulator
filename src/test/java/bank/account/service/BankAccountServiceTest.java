@@ -28,6 +28,29 @@ public class BankAccountServiceTest {
   }
 
   @Test
+  public void testDeleteAccount() {
+    Long accNumber = 9001L;
+    BankAccountService bank = new BankAccountService();
+    bank.createAccount(accNumber, bigDecimal(100.0));
+
+    bank.deleteAccount(accNumber);
+  }
+
+  @Test
+  public void testDeleteThenGetAccount() {
+    expectedEx.expect(IllegalArgumentException.class);
+    expectedEx.expectMessage("Unknown account 9009");
+
+    Long accNumber = 9009L;
+    BankAccountService bank = new BankAccountService();
+    bank.createAccount(accNumber, bigDecimal(100.0));
+
+    bank.deleteAccount(accNumber);
+
+    bank.getAccount(accNumber);
+  }
+
+  @Test
   public void testGetAccountWithWrongNumber() {
     expectedEx.expect(IllegalArgumentException.class);
     expectedEx.expectMessage("Unknown account 111");

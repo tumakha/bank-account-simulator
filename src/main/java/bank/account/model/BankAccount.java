@@ -60,4 +60,8 @@ public class BankAccount {
 
   }
 
+  public String toJson() {
+    return format("{\"account\": %d, \"balance\": %.2f}", number, balance);
+  }
+
 }

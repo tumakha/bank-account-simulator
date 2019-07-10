@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static bank.account.util.StreamUtil.safeStream;
 import static java.lang.String.format;
@@ -25,6 +26,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * @author Yuriy Tumakha.
  */
 abstract class BaseHandler implements HttpHandler {
+
+  static final Pattern ROOT_PATH_PATTERN = Pattern.compile("^/?$");
 
   private Logger log;
 

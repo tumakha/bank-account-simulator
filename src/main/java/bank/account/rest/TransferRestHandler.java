@@ -10,7 +10,6 @@ import java.io.InputStreamReader;
 import java.lang.System.Logger;
 import java.math.BigDecimal;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static bank.account.rest.http.HttpMethod.POST;
 import static java.net.HttpURLConnection.HTTP_OK;
@@ -22,12 +21,11 @@ import static java.util.stream.Collectors.joining;
 public class TransferRestHandler extends BaseHandler {
 
   private final static Logger LOG = System.getLogger(BankAccountService.class.getName());
-  private static final Pattern MONEY_TRANSFER_PATTERN = Pattern.compile("^/?$");
 
   TransferRestHandler(BankAccountService bankAccountService) {
     super(bankAccountService, LOG);
 
-    PathConsumerMapping pathConsumerMapping = new PathConsumerMapping(MONEY_TRANSFER_PATTERN);
+    PathConsumerMapping pathConsumerMapping = new PathConsumerMapping(ROOT_PATH_PATTERN);
     pathConsumerMapping.addConsumer(POST, this::transferMoney);
     addMapping(pathConsumerMapping);
   }
