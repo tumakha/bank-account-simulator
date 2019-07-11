@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Stream;
 
 import static bank.account.util.StreamUtil.safeStream;
 import static java.lang.String.format;
@@ -83,11 +82,9 @@ public class BankAccountService {
   }
 
   public List<Transaction> getAllTransactions() {
-    Stream<Transaction> transactions;
     synchronized (transactionList) {
-      transactions = safeStream(transactionList);
+      return safeStream(transactionList).sorted(comparing(Transaction::getTime)).collect(toList());
     }
-    return transactions.sorted(comparing(Transaction::getTime)).collect(toList());
   }
 
 }

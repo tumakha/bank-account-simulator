@@ -39,7 +39,7 @@ public class BankAccountServiceTest {
     BankAccount account2 = bank.createAccount(9L, bigDecimal(999.0));
 
     List<BankAccount> accounts = bank.getAllAccounts();
-    assertThat(accounts, hasSize(greaterThan(1)));
+    assertThat(accounts, hasSize(2));
     assertThat(accounts, hasItems(account1, account2));
   }
 
@@ -135,5 +135,27 @@ public class BankAccountServiceTest {
     assertThat(transaction.isStatus(), is(false));
     assertThat(transaction.getMessage(), equalTo("Transfer money to the same account 222 is not allowed"));
   }
+
+  @Test
+  public void testGetAllTransactions() {
+    Long accNumber1 = 111L;
+    Long accNumber2 = 222L;
+    BankAccountService bank = new BankAccountService();
+    bank.createAccount(accNumber1, bigDecimal(1e6));
+    bank.createAccount(accNumber2, bigDecimal(1000.0));
+
+    Transaction transaction1 = bank.transferMoney(accNumber1, accNumber2, bigDecimal(4_000.0));
+    assertThat(transaction1.isStatus(), is(true));
+
+    Transaction transaction2 = bank.transferMoney(accNumber1, accNumber2, bigDecimal(4_000.0));
+    assertThat(transaction1.isStatus(), is(true));
+
+
+    List<Transaction> transactions = bank.getAllTransactions();
+    assertThat(transactions, hasSize(2));
+    assertThat(transactions, hasItems(transaction1, transaction2));
+  }
+
+
 
 }
