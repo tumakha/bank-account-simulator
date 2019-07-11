@@ -4,11 +4,15 @@ import bank.account.model.BankAccount;
 
 import java.lang.System.Logger;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static bank.account.util.StreamUtil.safeStream;
 import static java.lang.String.format;
 import static java.lang.System.Logger.Level.INFO;
+import static java.util.Comparator.comparing;
 import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author Yuriy Tumakha.
@@ -47,6 +51,10 @@ public class BankAccountService {
     from.transferMoney(to, amount);
 
     LOG.log(INFO, format("%.2f transferred from %d to %d", amount, fromAccount, toAccount));
+  }
+
+  public List<BankAccount> getAllAccounts() {
+    return safeStream(accountMap.values()).sorted(comparing(BankAccount::getNumber)).collect(toList());
   }
 
 }

@@ -10,10 +10,13 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.lang.System.Logger;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static bank.account.rest.http.HttpMethod.*;
+import static bank.account.util.StreamUtil.safeStream;
+import static java.lang.String.format;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static java.util.stream.Collectors.joining;
 
@@ -34,6 +37,7 @@ public class AccountRestHandler extends BaseHandler {
     addMapping(accountIdMapping);
 
     PathConsumerMapping mapping = new PathConsumerMapping(ROOT_PATH_PATTERN);
+    mapping.addConsumer(GET, this::getAllAccounts);
     mapping.addConsumer(POST, this::createAccount);
     addMapping(mapping);
   }
@@ -63,6 +67,14 @@ public class AccountRestHandler extends BaseHandler {
     bankAccountService.deleteAccount(accountNumber);
 
     writeResponse(exchange, HTTP_OK, "{\"status\": \"OK\"}");
+  }
+
+  private void getAllAccounts(Matcher matcher, HttpExchange exchange) {
+    List<BankAccount> accountList = bankAccountService.getAllAccounts();
+
+    String accounts = safeStream(accountList).map(BankAccount::toJson).collect(joining(","));
+
+    writeResponse(exchange, HTTP_OK, format("[%s]", accounts));
   }
 
 }

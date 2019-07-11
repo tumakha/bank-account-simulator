@@ -30,7 +30,11 @@ RESTful API
 
         curl -v -X POST --header "Content-Type: application/json" -d '{"account": 1111, "balance": 1000}' localhost:8888/v1/account
 
- * Get bank account
+ * Get all bank accounts
+
+        curl -v -X GET localhost:8888/v1/account
+
+ * Get bank account by number
 
         curl -v -X GET localhost:8888/v1/account/1111
 
