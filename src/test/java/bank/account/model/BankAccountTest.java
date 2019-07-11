@@ -18,6 +18,21 @@ public class BankAccountTest {
   public ExpectedException expectedEx = ExpectedException.none();
 
   @Test
+  public void testCreateAccount() {
+    BankAccount account = new BankAccount(111L, bigDecimal(1e9));
+    assertThat(account.getNumber(), equalTo(111L));
+    assertThat(account.getBalance(), equalTo(bigDecimal(1e9)));
+  }
+
+  @Test
+  public void testCreateAccountNegativeNumber() {
+    expectedEx.expect(AssertionError.class);
+    expectedEx.expectMessage("Account number should be positive value");
+
+    new BankAccount(-99L, bigDecimal(1e9));
+  }
+
+  @Test
   public void testTransferMoney() {
     BankAccount account1 = new BankAccount(111L, bigDecimal(1e9));
     BankAccount account2 = new BankAccount(222L, bigDecimal(0));

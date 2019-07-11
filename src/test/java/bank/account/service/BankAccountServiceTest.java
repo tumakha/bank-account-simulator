@@ -5,8 +5,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.util.List;
+
 import static bank.account.util.DecimalFactory.bigDecimal;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.hasItems;
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -25,6 +30,17 @@ public class BankAccountServiceTest {
 
     assertThat(bank.getAccount(1L), equalTo(account1));
     assertThat(bank.getAccount(2L), equalTo(account2));
+  }
+
+  @Test
+  public void testGetAllAccounts() {
+    BankAccountService bank = new BankAccountService();
+    BankAccount account1 = bank.createAccount(8L, bigDecimal(888.0));
+    BankAccount account2 = bank.createAccount(9L, bigDecimal(999.0));
+
+    List<BankAccount> accounts = bank.getAllAccounts();
+    assertThat(accounts, hasSize(greaterThan(1)));
+    assertThat(accounts, hasItems(account1, account2));
   }
 
   @Test

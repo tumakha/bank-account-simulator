@@ -20,6 +20,7 @@ public class BankAccount {
   private BigDecimal balance;
 
   public BankAccount(Long number, BigDecimal balance) {
+    assert number > 0 : "Account number should be positive value";
     this.number = number;
     this.balance = balance;
   }
