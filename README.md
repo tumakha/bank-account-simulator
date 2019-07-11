@@ -45,3 +45,7 @@ RESTful API
  * Transfer money from one bank account to another
 
         curl -v -X POST --header "Content-Type: application/json" -d '{"from": 1111, "to": 2222, "amount": 500}' localhost:8888/v1/transfer
+
+ * Get transactions history
+
+        curl -v -X GET localhost:8888/v1/transfer
