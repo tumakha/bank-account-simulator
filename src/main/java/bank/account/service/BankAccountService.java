@@ -1,15 +1,20 @@
 package bank.account.service;
 
 import bank.account.model.BankAccount;
+import bank.account.model.Transaction;
 
 import java.lang.System.Logger;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
 import static bank.account.util.StreamUtil.safeStream;
 import static java.lang.String.format;
 import static java.lang.System.Logger.Level.INFO;
+import static java.util.Collections.synchronizedList;
 import static java.util.Comparator.comparing;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
@@ -21,7 +26,8 @@ public class BankAccountService {
 
   private final static Logger LOG = System.getLogger(BankAccountService.class.getName());
 
-  private ConcurrentHashMap<Long, BankAccount> accountMap = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<Long, BankAccount> accountMap = new ConcurrentHashMap<>();
+  private final List<Transaction> transactionList = synchronizedList(new ArrayList<>());
 
   public BankAccount getAccount(Long accountNumber) {
     return ofNullable(accountMap.get(accountNumber))
@@ -42,19 +48,46 @@ public class BankAccountService {
     accountMap.remove(account.getNumber());
   }
 
-  public void transferMoney(Long fromAccount, Long toAccount, BigDecimal amount) {
-    if (fromAccount.equals(toAccount))
-      throw new IllegalArgumentException(format("Transfer money to the same account %d is not allowed", fromAccount));
-    BankAccount from = getAccount(fromAccount);
-    BankAccount to = getAccount(toAccount);
-
-    from.transferMoney(to, amount);
-
-    LOG.log(INFO, format("%.2f transferred from %d to %d", amount, fromAccount, toAccount));
-  }
-
   public List<BankAccount> getAllAccounts() {
     return safeStream(accountMap.values()).sorted(comparing(BankAccount::getNumber)).collect(toList());
+  }
+
+  public Transaction transferMoney(Long fromAccount, Long toAccount, BigDecimal amount) {
+    Transaction transaction = new Transaction();
+    transaction.setFromAccount(fromAccount);
+    transaction.setToAccount(toAccount);
+    transaction.setAmount(amount);
+
+    try {
+      if (fromAccount.equals(toAccount))
+        throw new IllegalArgumentException(format("Transfer money to the same account %d is not allowed", fromAccount));
+
+      BankAccount from = getAccount(fromAccount);
+      BankAccount to = getAccount(toAccount);
+
+      from.transferMoney(to, amount);
+
+      transaction.setStatus(true);
+      transaction.setMessage("OK");
+
+      LOG.log(INFO, format("%.2f transferred from %d to %d", amount, fromAccount, toAccount));
+
+    } catch (Exception e) {
+      transaction.setStatus(false);
+      transaction.setMessage(e.getMessage());
+    } finally {
+      transaction.setTime(LocalDateTime.now());
+      transactionList.add(transaction);
+    }
+    return transaction;
+  }
+
+  public List<Transaction> getAllTransactions() {
+    Stream<Transaction> transactions;
+    synchronized (transactionList) {
+      transactions = safeStream(transactionList);
+    }
+    return transactions.sorted(comparing(Transaction::getTime)).collect(toList());
   }
 
 }

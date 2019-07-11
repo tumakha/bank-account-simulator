@@ -132,7 +132,11 @@ public class RestServiceITest {
         then().
         statusCode(HTTP_OK).
         contentType(JSON).
-        body("status", equalTo("OK"));
+        body("status", is(true),
+            "fromAccount", equalTo(accountNumber1.intValue()),
+            "toAccount", equalTo(accountNumber2.intValue()),
+            "amount", equalTo(50.88f),
+            "message", equalTo("OK"));
 
     // Get account 1
     when().
@@ -159,7 +163,8 @@ public class RestServiceITest {
         then().
         statusCode(HTTP_BAD_REQUEST).
         contentType(JSON).
-        body("error", equalTo("Unknown account 9999"));
+        body("status", is(false),
+            "message", equalTo("Unknown account 9999"));
   }
 
   @Test
@@ -196,7 +201,11 @@ public class RestServiceITest {
         then().
         statusCode(HTTP_BAD_REQUEST).
         contentType(JSON).
-        body("error", equalTo("Insufficient funds on account 333"));
+        body("status", is(false),
+            "fromAccount", equalTo(accountNumber1.intValue()),
+            "toAccount", equalTo(accountNumber2.intValue()),
+            "amount", equalTo(350f),
+            "message", equalTo("Insufficient funds on account 333"));
 
     // Get account 1
     when().
@@ -303,7 +312,7 @@ public class RestServiceITest {
           then().
           statusCode(HTTP_OK).
           contentType(JSON).
-          body("status", equalTo("OK"));
+          body("status", is(true));
 
       // Transfer 99.99 from account 2 to account 1
       given().
@@ -314,7 +323,7 @@ public class RestServiceITest {
           then().
           statusCode(HTTP_OK).
           contentType(JSON).
-          body("status", equalTo("OK"));
+          body("status", is(true));
       // account1 -= 0.01, account2 += 0.01 after each loop
     }).run(1_000);
 

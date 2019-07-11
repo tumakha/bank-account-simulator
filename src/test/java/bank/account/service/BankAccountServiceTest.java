@@ -1,6 +1,7 @@
 package bank.account.service;
 
 import bank.account.model.BankAccount;
+import bank.account.model.Transaction;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -8,8 +9,7 @@ import org.junit.rules.ExpectedException;
 import java.util.List;
 
 import static bank.account.util.DecimalFactory.bigDecimal;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.hasItems;
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.junit.Assert.assertThat;
@@ -93,7 +93,9 @@ public class BankAccountServiceTest {
     bank.createAccount(accNumber1, bigDecimal(1e6));
     bank.createAccount(accNumber2, bigDecimal(1000.0));
 
-    bank.transferMoney(accNumber1, accNumber2, bigDecimal(4_000.0));
+    Transaction transaction = bank.transferMoney(accNumber1, accNumber2, bigDecimal(4_000.0));
+    assertThat(transaction.isStatus(), is(true));
+    assertThat(transaction.getMessage(), equalTo("OK"));
 
     assertThat(bank.getAccount(accNumber1).getBalance(), equalTo(bigDecimal(996_000.0)));
     assertThat(bank.getAccount(accNumber2).getBalance(), equalTo(bigDecimal(5_000.0)));
@@ -101,40 +103,37 @@ public class BankAccountServiceTest {
 
   @Test
   public void testTransferMoneyUnknownTo() {
-    expectedEx.expect(IllegalArgumentException.class);
-    expectedEx.expectMessage("Unknown account 777");
-
     Long accNumber1 = 555L;
     Long accNumber2 = 777L;
     BankAccountService bank = new BankAccountService();
     bank.createAccount(accNumber1, bigDecimal(1000.0));
 
-    bank.transferMoney(accNumber1, accNumber2, bigDecimal(500.0));
+    Transaction transaction = bank.transferMoney(accNumber1, accNumber2, bigDecimal(500.0));
+    assertThat(transaction.isStatus(), is(false));
+    assertThat(transaction.getMessage(), equalTo("Unknown account 777"));
   }
 
   @Test
   public void testTransferMoneyUnknownFrom() {
-    expectedEx.expect(IllegalArgumentException.class);
-    expectedEx.expectMessage("Unknown account 111");
-
     Long accNumber1 = 111L;
     Long accNumber2 = 555L;
     BankAccountService bank = new BankAccountService();
     bank.createAccount(accNumber2, bigDecimal(1000.0));
 
-    bank.transferMoney(accNumber1, accNumber2, bigDecimal(500.0));
+    Transaction transaction = bank.transferMoney(accNumber1, accNumber2, bigDecimal(500.0));
+    assertThat(transaction.isStatus(), is(false));
+    assertThat(transaction.getMessage(), equalTo("Unknown account 111"));
   }
 
   @Test
   public void testTransferMoneyToTheSameAccount() {
-    expectedEx.expect(IllegalArgumentException.class);
-    expectedEx.expectMessage("Transfer money to the same account 222 is not allowed");
-
     Long accNumber = 222L;
     BankAccountService bank = new BankAccountService();
     bank.createAccount(accNumber, bigDecimal(1e6));
 
-    bank.transferMoney(accNumber, accNumber, bigDecimal(100.0));
+    Transaction transaction = bank.transferMoney(accNumber, accNumber, bigDecimal(100.0));
+    assertThat(transaction.isStatus(), is(false));
+    assertThat(transaction.getMessage(), equalTo("Transfer money to the same account 222 is not allowed"));
   }
 
 }

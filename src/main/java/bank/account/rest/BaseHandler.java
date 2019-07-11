@@ -73,7 +73,7 @@ abstract class BaseHandler implements HttpHandler {
       writeError(exchange, HTTP_BAD_REQUEST, ex.getMessage());
     } catch (Exception e) {
       log.log(ERROR, "Handle request failed. " + exchange.getRequestURI(), e);
-      String error = e.getMessage().replaceAll("\"", "\\\\\"");
+      String error = e.getMessage().replaceAll("\"", "\\\"");
       writeError(exchange, HTTP_INTERNAL_ERROR, error);
     }
   }
