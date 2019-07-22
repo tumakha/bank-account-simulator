@@ -199,7 +199,7 @@ public class RestServiceITest {
         when().
         post(TRANSFER_BASE).
         then().
-        statusCode(HTTP_BAD_REQUEST).
+        statusCode(HTTP_CONFLICT).
         contentType(JSON).
         body("status", is(false),
             "fromAccount", equalTo(accountNumber1.intValue()),

@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static bank.account.util.StreamUtil.safeStream;
 import static java.lang.String.format;
 import static java.lang.System.Logger.Level.INFO;
+import static java.net.HttpURLConnection.*;
 import static java.util.Collections.synchronizedList;
 import static java.util.Comparator.comparing;
 import static java.util.Optional.ofNullable;
@@ -68,12 +69,18 @@ public class BankAccountService {
       from.transferMoney(to, amount);
 
       transaction.setStatus(true);
+      transaction.setStatusCode(HTTP_OK);
       transaction.setMessage("OK");
 
       LOG.log(INFO, format("%.2f transferred from %d to %d", amount, fromAccount, toAccount));
-
+    } catch (IllegalArgumentException | AssertionError e) {
+      transaction.setStatusCode(HTTP_BAD_REQUEST);
+      transaction.setMessage(e.getMessage());
+    } catch (IllegalStateException e) {
+      transaction.setStatusCode(HTTP_CONFLICT);
+      transaction.setMessage(e.getMessage());
     } catch (Exception e) {
-      transaction.setStatus(false);
+      transaction.setStatusCode(HTTP_INTERNAL_ERROR);
       transaction.setMessage(e.getMessage());
     } finally {
       transaction.setTime(LocalDateTime.now());

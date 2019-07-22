@@ -17,7 +17,6 @@ import static bank.account.rest.http.HttpMethod.GET;
 import static bank.account.rest.http.HttpMethod.POST;
 import static bank.account.util.StreamUtil.safeStream;
 import static java.lang.String.format;
-import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static java.util.stream.Collectors.joining;
 
@@ -47,7 +46,7 @@ public class TransferRestHandler extends BaseHandler {
 
     Transaction transaction = bankAccountService.transferMoney(fromAccount, toAccount, amount);
 
-    writeResponse(exchange, transaction.isStatus() ? HTTP_OK : HTTP_BAD_REQUEST, transaction.toJson());
+    writeResponse(exchange, transaction.getStatusCode(), transaction.toJson());
   }
 
   private void getAllTransactions(Matcher matcher, HttpExchange exchange) {

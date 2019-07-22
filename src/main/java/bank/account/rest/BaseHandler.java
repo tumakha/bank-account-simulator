@@ -69,8 +69,10 @@ abstract class BaseHandler implements HttpHandler {
         writeError(exchange, HTTP_NOT_FOUND, "Wrong path pattern");
       }
 
-    } catch (IllegalArgumentException | IllegalStateException | AssertionError ex) {
+    } catch (IllegalArgumentException | AssertionError ex) {
       writeError(exchange, HTTP_BAD_REQUEST, ex.getMessage());
+    } catch (IllegalStateException ex) {
+      writeError(exchange, HTTP_CONFLICT, ex.getMessage());
     } catch (Exception e) {
       log.log(ERROR, "Handle request failed. " + exchange.getRequestURI(), e);
       String error = e.getMessage().replaceAll("\"", "\\\"");

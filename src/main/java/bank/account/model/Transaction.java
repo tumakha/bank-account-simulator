@@ -18,6 +18,7 @@ public class Transaction {
   private Long toAccount;
   private BigDecimal amount;
   private boolean status;
+  private int statusCode;
   private String message;
   private LocalDateTime time;
 
@@ -55,6 +56,14 @@ public class Transaction {
 
   public void setStatus(boolean status) {
     this.status = status;
+  }
+
+  public int getStatusCode() {
+    return statusCode;
+  }
+
+  public void setStatusCode(int statusCode) {
+    this.statusCode = statusCode;
   }
 
   public String getMessage() {
