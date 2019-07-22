@@ -43,8 +43,9 @@ public class BankAccountService {
   }
 
   public void deleteAccount(Long accountNumber) {
-    BankAccount account = getAccount(accountNumber);
-    accountMap.remove(account.getNumber());
+    synchronized (getAccount(accountNumber)) {
+      accountMap.remove(accountNumber);
+    }
   }
 
   public List<BankAccount> getAllAccounts() {
